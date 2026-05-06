@@ -776,12 +776,10 @@ let adminLoggedIn = false;
 // ═══════════════════════════════════════
 // GOOGLE SHEETS CONFIG
 // ═══════════════════════════════════════
-const GS_URL = 'https://script.google.com/macros/s/AKfycbxAgI6a0l8eMGsEkmAgG_m87cyokACM04JfcBGPfA-nYWgRWvABnTo5Ys7rp-kRBCLn/exec';
+const GS_URL = 'https://script.google.com/macros/s/AKfycbzpuy24_28Q9WhH8_APWEpqi7CZ7Xi9a57sin7qfDgM6DJp5vi6QrRGAy1qEra5jyo/exec';
 
 // ═══════════════════════════════════════
-// GOOGLE SHEETS — DUAL STORAGE
-// localStorage = instant local cache
-// Google Sheets = permanent cloud backup
+// STORAGE — localStorage + Google Sheets
 // ═══════════════════════════════════════
 
 function localSave() {
@@ -791,64 +789,37 @@ function localSave() {
 function localLoad() {
   try {
     const d = localStorage.getItem('donaseo_records');
-    if(d) records = JSON.parse(d);
+    if (d) records = JSON.parse(d);
   } catch(e) {}
 }
 
-// Fire-and-forget POST to Google Sheets (no-cors, can't read response)
 function gsSend(payload) {
-  // Method 1: fetch no-cors (saves data, can't read response - that's OK for saving)
   fetch(GS_URL, {
     method: 'POST',
-    mode: 'no-cors',
     headers: {'Content-Type': 'text/plain'},
     body: JSON.stringify(payload)
   }).catch(() => {});
-
-  // Method 2: Image beacon as backup
-  try {
-    const img = new Image();
-    img.src = GS_URL + '?data=' + encodeURIComponent(JSON.stringify(payload));
-  } catch(e) {}
 }
 
-// Load from Google Sheets using a proxy iframe trick
 async function gsLoadRecords() {
-  return new Promise((resolve) => {
-    const timeout = setTimeout(() => {
-      // If GS fails, use local cache
-      localLoad();
-      resolve();
-    }, 6000);
-
-    // Use fetch with CORS — works when hosted on a server/GitHub Pages
-    fetch(GS_URL + '?action=getAll')
-      .then(r => r.text())
-      .then(text => {
-        clearTimeout(timeout);
-        try {
-          const data = JSON.parse(text);
-          if(data.ok && Array.isArray(data.records) && data.records.length > 0) {
-            records = data.records;
-            localSave(); // update local cache with fresh data
-          } else {
-            localLoad(); // fallback to cache
-          }
-        } catch(e) {
-          localLoad();
-        }
-        resolve();
-      })
-      .catch(() => {
-        clearTimeout(timeout);
-        localLoad(); // fallback to local cache
-        resolve();
-      });
-  });
+  try {
+    const res = await fetch(GS_URL + '?action=getAll');
+    const data = await res.json();
+    if (data.ok && Array.isArray(data.records)) {
+      records = data.records;
+      localSave();
+      return true;
+    }
+  } catch(e) {
+    // fallback to local cache
+  }
+  localLoad();
+  return false;
 }
 
 // ═══════════════════════════════════════
 // SCREENS
+
 
 // ═══════════════════════════════════════
 function showScreen(id) {
@@ -1071,8 +1042,10 @@ function showResults() {
   const rec = {id:Date.now(),name:user.name,cedula:user.cedula,dep:user.dep,cargo:user.cargo,
     fecha:user.fecha,nota:pct,passed,certDownloaded:false};
   records.push(rec);
-  localSave();           // instant local save
-  gsSend({action:'save', ...rec}); // async cloud save
+  localSave();
+  gsSend({action:'save', id:rec.id, name:rec.name, cedula:rec.cedula,
+    dep:rec.dep, cargo:rec.cargo, fecha:rec.fecha,
+    nota:rec.nota, passed:rec.passed, certDownloaded:rec.certDownloaded});
   showScreen('result');
   document.getElementById('result-area').innerHTML = `
     <div class="result-card">
@@ -1252,7 +1225,7 @@ function generateCert() {
   // Mark cert downloaded
   const rec = records[records.length-1];
   if(rec){
-    rec.certDownloaded=true;
+    rec.certDownloaded = true;
     localSave();
     gsSend({action:'updateCert', id:rec.id});
   }
@@ -1277,8 +1250,8 @@ async function renderAdmin() {
   document.getElementById('admin-stats').innerHTML = `
     <div class="stat-card" style="grid-column:1/-1;justify-content:center;padding:24px;">
       <div style="color:var(--gray-400);font-size:.88rem;display:flex;align-items:center;gap:10px;">
-        <span style="display:inline-block;width:18px;height:18px;border:2px solid var(--blue);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;"></span>
-        Cargando registros desde Google Sheets...
+        <span style="display:inline-block;width:18px;height:18px;border:2px solid var(--blue);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></span>
+        Sincronizando con Google Sheets...
       </div>
     </div>`;
   document.getElementById('adm-tbody').innerHTML = '';
