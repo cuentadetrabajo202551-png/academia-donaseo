@@ -6,6 +6,7 @@
 <title>Academia Don Aseo — Inducción Corporativa</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 
@@ -682,7 +683,11 @@ body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--gray-800)
       <div class="admin-filters">
         <div class="filter-group">
           <label>Buscar nombre o cédula</label>
-          <input class="filter-input" id="f-search" placeholder="🔍 Nombre o cédula..." oninput="renderTable()" style="width:190px">
+          <input class="filter-input" id="f-search" placeholder="🔍 Nombre o cédula..." oninput="renderTable()" style="width:175px">
+        </div>
+        <div class="filter-group">
+          <label>Edificio / Entidad</label>
+          <input class="filter-input" id="f-edificio" placeholder="🏢 Entidad..." oninput="renderTable()" style="width:165px">
         </div>
         <div class="filter-group">
           <label>Fecha inicial</label>
@@ -1321,6 +1326,14 @@ function buildPDF(erikaSig, fernandoSig) {
     W/2, H-3, {align:'center'}
   );
 
+  if(window._zipMode) {
+    window._zipMode = false;
+    const blob = doc.output('blob');
+    const cb = window._zipCallback;
+    window._zipCallback = null;
+    if(cb) cb(blob);
+    return;
+  }
   doc.save('Certificado_Induccion_DON_ASEO_' + user.name.replace(/ /g,'_') + '.pdf');
   showToast('📄 Certificado descargado correctamente');
 
@@ -1505,8 +1518,10 @@ function getFilteredRecords() {
   const tipo=document.getElementById('f-tipo')?.value||'';
   const estado=document.getElementById('f-estado')?.value||'';
 
+  const edif=(document.getElementById('f-edificio')?.value||'').toLowerCase();
   return records.filter(r => {
     if(q && !r.name.toLowerCase().includes(q) && !r.cedula.includes(q)) return false;
+    if(edif && !(r.edificio||r.dep||'').toLowerCase().includes(edif)) return false;
     if(tipo && r.tipo!==tipo) return false;
     if(estado==='pass' && !r.passed) return false;
     if(estado==='fail' && r.passed) return false;
@@ -1547,7 +1562,7 @@ function renderTable() {
 }
 
 function clearFilters() {
-  ['f-search','f-date-from','f-date-to'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['f-search','f-date-from','f-date-to','f-edificio'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   ['f-tipo','f-estado'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
   renderTable();
 }
@@ -1600,14 +1615,47 @@ async function deleteSelected() {
 async function downloadSelected() {
   const toDownload=[...selectedIds].map(id=>records.find(r=>String(r.id)===String(id))).filter(r=>r&&r.passed);
   if(!toDownload.length){ showToast('No hay registros aprobados seleccionados'); return; }
-  showToast(`📄 Generando ${toDownload.length} certificado(s)...`);
-  const savedUser = user;
-  for(let i=0;i<toDownload.length;i++) {
-    user = {...toDownload[i]};
-    generateCert();
-    await new Promise(r=>setTimeout(r,1200));
+  if(toDownload.length===1) {
+    // Single cert — download directly
+    const savedUser=user; user={...toDownload[0]}; generateCert(); user=savedUser; return;
   }
-  user = savedUser;
+  // Multiple certs — generate ZIP
+  showToast(`📦 Generando ZIP con ${toDownload.length} certificados...`);
+  const zip = new JSZip();
+  const savedUser = user;
+  let generated = 0;
+  function generateNext(idx) {
+    if(idx >= toDownload.length) {
+      // All done — save ZIP
+      zip.generateAsync({type:'blob'}).then(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'Certificados_DON_ASEO_' + new Date().toISOString().slice(0,10) + '.zip';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        user = savedUser;
+        showToast(`✅ ZIP descargado con ${toDownload.length} certificados`);
+      });
+      return;
+    }
+    user = {...toDownload[idx]};
+    // Build PDF as blob and add to ZIP
+    buildPDFasBlob(function(blob) {
+      const filename = 'Certificado_' + user.name.replace(/ /g,'_') + '.pdf';
+      zip.file(filename, blob);
+      generated++;
+      showToast(`📄 Generando ${generated}/${toDownload.length}...`);
+      setTimeout(()=>generateNext(idx+1), 300);
+    });
+  }
+  generateNext(0);
+}
+
+function buildPDFasBlob(callback) {
+  // Temporarily intercept jsPDF save to capture blob instead of downloading
+  window._zipMode = true;
+  window._zipCallback = callback;
+  generateCert(); // generateCert → buildPDF → at save point we intercept
 }
 
 function regenCert(id) {
@@ -1733,7 +1781,7 @@ const MODULES = [
       {type:"list",label:"Objetivos del SG-SST (Resolución 0312/2019)",items:[
         "Prevenir accidentes de trabajo y enfermedades laborales — meta: >90%","Cumplir la Legislación Colombiana en SST del Ministerio del Trabajo","Ejecutar la Matriz de Requisitos Legales con cumplimiento >90%","Medir la eficacia de controles mediante la Matriz de Jerarquización","Asignar recursos físicos, económicos y humanos para el SG-SST","Asegurar la mejora continua para fortalecer la competitividad y buena imagen"
       ]},
-      {type:"warn",label:"En Caso de Accidente de Trabajo",content:"⚠️ Conserve la calma y solicite ayuda inmediata. Notifique al supervisor en los primeros 5 minutos. Acuda a la IPS de la ARL Positiva Compañía de Seguros. Diligencie el FURAT (Formato Único de Reporte). No firme documentos sin consultar al área de SST. Recuerde: tiene el derecho y el deber de detener una actividad si identifica condiciones inseguras no corregidas."}
+      {type:"warn",label:"En Caso de Accidente de Trabajo",content:"⚠️ Conserve la calma y solicite ayuda inmediata. Notifique al supervisor en los primeros 5 minutos. Acuda a la IPS de la ARL Seguros Bolívar. Diligencie el FURAT (Formato Único de Reporte). No firme documentos sin consultar al área de SST. Recuerde: tiene el derecho y el deber de detener una actividad si identifica condiciones inseguras no corregidas."}
     ]
   },
   {
@@ -1763,7 +1811,7 @@ const MODULES = [
         {i:"✅",t:"Bureau Veritas",d:"Certificación de Calidad (SAFE GUARD — BVQI Colombia Ltda.)"},
         {i:"🛡️",t:"CCS",d:"Consejo Colombiano de Seguridad — Gestión SST"},
         {i:"📋",t:"RUC",d:"Registro Uniforme para Contratistas — Ambiente"},
-        {i:"📊",t:"ARL Positiva",d:"Resultado SG-SST: 96% ACEPTABLE (evaluación 10/12/2025)"},
+        {i:"📊",t:"ARL Seguros Bolívar",d:"Resultado SG-SST: 96% ACEPTABLE (evaluación 10/12/2025)"},
         {i:"⚖️",t:"Cumplimiento Legal",d:"DIAN, MinTrabajo, MinSalud, Protección Social"}
       ]},
       {type:"list",label:"Partes Interesadas — SGC",items:[
