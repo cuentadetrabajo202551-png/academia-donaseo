@@ -1441,8 +1441,13 @@ function buildPDF(erikaSig, fernandoSig) {
     doc.text(b.label, bX+bW/2, bY+5.5, {align:'center'});
     doc.setTextColor(255,255,255);
     doc.setFontSize(8.5);
-    const val = b.value && b.value.length>22 ? b.value.substring(0,21)+'…' : (b.value||'—');
-    doc.text(val, bX+bW/2, bY+13, {align:'center'});
+    // Auto-shrink font for long values
+    let val = b.value||'—';
+    let valSize = 8.5;
+    if(val.length > 22) valSize = 6.5;
+    if(val.length > 30) valSize = 5.5;
+    doc.setFontSize(valSize);
+    doc.text(val, bX+bW/2, bY+13, {align:'center', maxWidth: bW-4});
     bX += bW+gap;
   });
 
@@ -1454,15 +1459,19 @@ function buildPDF(erikaSig, fernandoSig) {
   doc.text('12 módulos del programa y superado la evaluación final con nota aprobatoria.', W/2, 130, {align:'center'});
 
   // Reglamento note
+  // Reglamento note — properly spaced below body text
   doc.setFillColor(255,255,255);
   doc.setGState(new doc.GState({opacity:0.07}));
-  doc.roundedRect(W/2-95, 134, 190, 8, 2, 2, 'F');
+  doc.roundedRect(W/2-100, 136, 200, 14, 2, 2, 'F');
   doc.setGState(new doc.GState({opacity:1}));
+  doc.setDrawColor(201,162,39);
+  doc.setLineWidth(0.3);
+  doc.line(W/2-98, 136, W/2+98, 136);
   doc.setTextColor(201,162,39);
   doc.setFont('helvetica','bold');
-  doc.setFontSize(7);
-  doc.text('El trabajador declara haber recibido y conocer el Reglamento Interno de Trabajo de DON ASEO LTDA.,', W/2, 137, {align:'center'});
-  doc.text('comprometiéndose a acatar sus disposiciones durante toda su vinculación con la empresa.', W/2, 142, {align:'center'});
+  doc.setFontSize(6.5);
+  doc.text('El trabajador declara haber recibido y conocer el Reglamento Interno de Trabajo de DON ASEO LTDA.,', W/2, 141, {align:'center'});
+  doc.text('comprometiéndose a acatar sus disposiciones durante toda su vinculación con la empresa.', W/2, 146, {align:'center'});
 
 
   // ── SIGNATURE ZONE ──────────────────────────
