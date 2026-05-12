@@ -1557,23 +1557,6 @@ async function renderAdmin() {
   renderAdminUI();
 }
 
-function renderTable() {
-  const q=(document.getElementById('admin-search')?.value||'').toLowerCase();
-  const filt = records.filter(r=>r.name.toLowerCase().includes(q)||r.cedula.includes(q));
-  const tb=document.getElementById('adm-tbody'), em=document.getElementById('adm-empty');
-  if(!filt.length){tb.innerHTML='';em.style.display='block';return;}
-  em.style.display='none';
-  tb.innerHTML=[...filt].reverse().map(r=>`<tr>
-    <td class="dn">${r.name}</td>
-    <td>${r.cedula}</td>
-    <td>${r.dep||'—'}</td>
-    <td>${r.cargo}</td>
-    <td>${r.fecha}</td>
-    <td><strong style="color:${r.passed?'#14532d':'#7f1d1d'}">${r.nota}%</strong></td>
-    <td>${r.passed?`<a class="dl-link" onclick="regenCert('${r.id}')">📄 Descargar</a>`:`<span style="color:var(--gray-400);font-size:.78rem;">—</span>`}</td>
-    <td>${r.passed?`<span class="status-badge sb-ok">✅ Aprobado</span>`:`<span class="status-badge sb-fail">❌ Reprobado</span>`}</td>
-  </tr>`).join('');
-}
 
 function regenCert(id) {
   const rec=records.find(r=>r.id==id);
@@ -1791,7 +1774,9 @@ function renderTable() {
       <td><strong style="color:${r.passed?'#14532d':'#7f1d1d'}">${r.nota}%</strong></td>
       <td>${r.passed?`<span class="status-badge sb-ok">✅ Aprobado</span>`:`<span class="status-badge sb-fail">❌ Reprobado</span>`}</td>
       <td>${r.passed?`<a class="dl-link" onclick="regenCert('${r.id}')">📄 Descargar</a>`:`<span style="color:var(--gray-400);font-size:.78rem;">—</span>`}</td>
-      <td>${isAdmin?`<button class="btn-del" onclick="deleteRecord('${r.id}','${r.name}')">🗑️ Eliminar</button>`:''}
+      <td style="display:flex;gap:5px;align-items:center;flex-wrap:wrap;">
+        ${isAdmin?`<button class="btn-del" style="color:var(--blue);" onclick="openEditModal('${r.id}')">✏️ Editar</button>`:''}
+        ${isAdmin?`<button class="btn-del" onclick="deleteRecord('${r.id}','${r.name}')">🗑️</button>`:''}
       </td>
     </tr>`;
   }).join('');
