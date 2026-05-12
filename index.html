@@ -574,38 +574,38 @@ body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--gray-800)
       <div class="form-group"><label>Departamento</label>
         <select id="ln-dept" onchange="fillCities()">
           <option value="">Seleccione departamento</option>
-                  <option>Amazonas</option>
-        <option>Antioquia</option>
-        <option>Arauca</option>
-        <option>Atlántico</option>
-        <option>Bolívar</option>
-        <option>Boyacá</option>
-        <option>Caldas</option>
-        <option>Caquetá</option>
-        <option>Casanare</option>
-        <option>Cauca</option>
-        <option>Cesar</option>
-        <option>Chocó</option>
-        <option>Córdoba</option>
-        <option>Cundinamarca</option>
-        <option>Guainía</option>
-        <option>Guaviare</option>
-        <option>Huila</option>
-        <option>La Guajira</option>
-        <option>Magdalena</option>
-        <option>Meta</option>
-        <option>Nariño</option>
-        <option>Norte de Santander</option>
-        <option>Putumayo</option>
-        <option>Quindío</option>
-        <option>Risaralda</option>
-        <option>San Andrés</option>
-        <option>Santander</option>
-        <option>Sucre</option>
-        <option>Tolima</option>
-        <option>Valle del Cauca</option>
-        <option>Vaupés</option>
-        <option>Vichada</option>
+                  <option value="Amazonas">Amazonas</option>
+        <option value="Antioquia">Antioquia</option>
+        <option value="Arauca">Arauca</option>
+        <option value="Atlántico">Atlántico</option>
+        <option value="Bolívar">Bolívar</option>
+        <option value="Boyacá">Boyacá</option>
+        <option value="Caldas">Caldas</option>
+        <option value="Caquetá">Caquetá</option>
+        <option value="Casanare">Casanare</option>
+        <option value="Cauca">Cauca</option>
+        <option value="Cesar">Cesar</option>
+        <option value="Chocó">Chocó</option>
+        <option value="Córdoba">Córdoba</option>
+        <option value="Cundinamarca">Cundinamarca</option>
+        <option value="Guainía">Guainía</option>
+        <option value="Guaviare">Guaviare</option>
+        <option value="Huila">Huila</option>
+        <option value="La Guajira">La Guajira</option>
+        <option value="Magdalena">Magdalena</option>
+        <option value="Meta">Meta</option>
+        <option value="Nariño">Nariño</option>
+        <option value="Norte de Santander">Norte de Santander</option>
+        <option value="Putumayo">Putumayo</option>
+        <option value="Quindío">Quindío</option>
+        <option value="Risaralda">Risaralda</option>
+        <option value="San Andrés">San Andrés</option>
+        <option value="Santander">Santander</option>
+        <option value="Sucre">Sucre</option>
+        <option value="Tolima">Tolima</option>
+        <option value="Valle del Cauca">Valle del Cauca</option>
+        <option value="Vaupés">Vaupés</option>
+        <option value="Vichada">Vichada</option>
         </select>
       </div>
       <div class="form-group"><label>Ciudad</label>
@@ -1051,8 +1051,12 @@ function fillCities() {
   const dept = document.getElementById('ln-dept').value;
   const sel = document.getElementById('ln-city');
   sel.innerHTML = '<option value="">Seleccione ciudad</option>';
-  if(dept && COLOMBIA[dept]) {
-    COLOMBIA[dept].forEach(c => {
+  if(!dept) return;
+  // Find matching key (normalize to handle encoding differences)
+  const normalize = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+  const key = Object.keys(COLOMBIA).find(k => normalize(k) === normalize(dept));
+  if(key && COLOMBIA[key]) {
+    COLOMBIA[key].forEach(c => {
       const o = document.createElement('option');
       o.value = o.textContent = c;
       sel.appendChild(o);
@@ -1556,33 +1560,6 @@ function buildPDF(erikaSig, fernandoSig) {
 // ═══════════════════════════════════════
 // ADMIN
 // ═══════════════════════════════════════
-function renderAdminUI() {
-  const t=records.length, p=records.filter(r=>r.passed).length, f=records.filter(r=>!r.passed).length;
-  const avg = t?Math.round(records.reduce((a,r)=>a+r.nota,0)/t):0;
-  document.getElementById('admin-stats').innerHTML = `
-    <div class="stat-card"><div class="sc-icon" style="background:rgba(18,85,163,.1)">👥</div><div class="sc-info"><div class="sn">${t}</div><div class="sl">Total Registros</div></div></div>
-    <div class="stat-card"><div class="sc-icon" style="background:rgba(22,163,74,.1)">✅</div><div class="sc-info"><div class="sn">${p}</div><div class="sl">Aprobados</div></div></div>
-    <div class="stat-card"><div class="sc-icon" style="background:rgba(220,38,38,.1)">❌</div><div class="sc-info"><div class="sn">${f}</div><div class="sl">Reprobados</div></div></div>
-    <div class="stat-card"><div class="sc-icon" style="background:rgba(200,169,42,.1)">📊</div><div class="sc-info"><div class="sn">${avg}%</div><div class="sl">Nota Promedio</div></div></div>`;
-  renderTable();
-}
-
-async function renderAdmin() {
-  // Show loading state
-  document.getElementById('admin-stats').innerHTML = `
-    <div class="stat-card" style="grid-column:1/-1;justify-content:center;padding:24px;">
-      <div style="color:var(--gray-400);font-size:.88rem;display:flex;align-items:center;gap:10px;">
-        <span style="display:inline-block;width:18px;height:18px;border:2px solid var(--blue);border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;"></span>
-        Sincronizando con Google Sheets...
-      </div>
-    </div>`;
-  document.getElementById('adm-tbody').innerHTML = '';
-  document.getElementById('adm-empty').style.display = 'none';
-
-  await apiLoadRecords();
-  renderAdminUI();
-}
-
 
 function regenCert(id) {
   const rec=records.find(r=>r.id==id);
