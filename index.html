@@ -1461,12 +1461,9 @@ function buildPDF(erikaSig, fernandoSig) {
   doc.setTextColor(201,162,39);
   doc.setFont('helvetica','bold');
   doc.setFontSize(7);
-  doc.text('El trabajador declara haber recibido y conocer el Reglamento Interno de Trabajo de DON ASEO LTDA.,', W/2, 138.5, {align:'center'});
-  doc.text('comprometiéndose a acatar sus disposiciones durante toda su vinculación con la empresa.', W/2, 143, {align:'center'});
-  const code = 'DA-' + user.cedula.slice(-4) + '-' + String(Date.now()).slice(-6);
-  doc.setTextColor(140,170,210);
-  doc.setFontSize(7.5);
-  doc.text('Código de verificación: ' + code, W/2, 139, {align:'center'});
+  doc.text('El trabajador declara haber recibido y conocer el Reglamento Interno de Trabajo de DON ASEO LTDA.,', W/2, 137, {align:'center'});
+  doc.text('comprometiéndose a acatar sus disposiciones durante toda su vinculación con la empresa.', W/2, 142, {align:'center'});
+
 
   // ── SIGNATURE ZONE ──────────────────────────
   const SY  = H*0.72 + 3;
