@@ -901,7 +901,7 @@ body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--gray-800)
     <p id="confirm-msg">Esta acción eliminará el registro de PostgreSQL y permitirá que la persona vuelva a realizar la inducción.</p>
     <div class="confirm-btns">
       <button class="btn-confirm-no" onclick="closeConfirm()">Cancelar</button>
-      <button class="btn-confirm-yes" id="confirm-yes-btn">Sí, eliminar</button>
+      <button class="btn-confirm-yes" onclick="doDeleteConfirmed()">Sí, eliminar</button>
     </div>
   </div>
 </div>
@@ -1739,24 +1739,67 @@ async function saveEdit() {
 }
 
 // ═══════════════════════════════════════
-// CONFIRM MODAL (replaces browser confirm())
+// CONFIRM MODAL
 // ═══════════════════════════════════════
-let _confirmCallback = null;
+let _pendingDeleteId   = null;
+let _pendingDeleteName = null;
+let _pendingBulkIds    = null;
 
-function showConfirm(title, msg, onConfirm) {
-  document.getElementById('confirm-title').textContent = title;
-  document.getElementById('confirm-msg').textContent = msg;
-  _confirmCallback = onConfirm;
+function showDeleteConfirm(id, name) {
+  _pendingDeleteId   = id;
+  _pendingDeleteName = name;
+  _pendingBulkIds    = null;
+  document.getElementById('confirm-title').textContent = 'Eliminar registro de ' + name.split(' ')[0];
+  document.getElementById('confirm-msg').textContent   = 'Esta acción eliminará el registro de PostgreSQL y permitirá que la persona vuelva a realizar la inducción.';
   document.getElementById('confirm-modal').classList.add('show');
-  document.getElementById('confirm-yes-btn').onclick = async function() {
-    closeConfirm();
-    if(_confirmCallback) await _confirmCallback();
-  };
+}
+
+function showBulkDeleteConfirm(ids) {
+  _pendingDeleteId   = null;
+  _pendingDeleteName = null;
+  _pendingBulkIds    = ids;
+  document.getElementById('confirm-title').textContent = 'Eliminar ' + ids.length + ' registro(s)';
+  document.getElementById('confirm-msg').textContent   = 'Esta acción eliminará los registros seleccionados de PostgreSQL permanentemente.';
+  document.getElementById('confirm-modal').classList.add('show');
 }
 
 function closeConfirm() {
   document.getElementById('confirm-modal').classList.remove('show');
-  _confirmCallback = null;
+  _pendingDeleteId = null; _pendingDeleteName = null; _pendingBulkIds = null;
+}
+
+async function doDeleteConfirmed() {
+  closeConfirm();
+  if(_pendingDeleteId) {
+    const id = _pendingDeleteId, name = _pendingDeleteName;
+    try {
+      const res = await fetch(API+'/record/'+id, {method:'DELETE'});
+      const data = await res.json();
+      if(data.ok) {
+        records = records.filter(r=>String(r.id)!==String(id));
+        localSave();
+        selectedIds.delete(String(id));
+        renderAdminUI();
+        showToast('✅ Registro eliminado correctamente');
+      } else {
+        showToast('❌ Error: ' + (data.error||'No se pudo eliminar'));
+      }
+    } catch(e) {
+      showToast('❌ Error de conexión al eliminar');
+    }
+  } else if(_pendingBulkIds) {
+    let deleted = 0;
+    for(const id of _pendingBulkIds) {
+      try {
+        const res = await fetch(API+'/record/'+id, {method:'DELETE'});
+        const data = await res.json();
+        if(data.ok) { records=records.filter(r=>String(r.id)!==String(id)); deleted++; }
+      } catch(e) {}
+    }
+    localSave(); selectedIds.clear();
+    renderAdminUI();
+    showToast('✅ ' + deleted + ' registro(s) eliminado(s)');
+  }
 }
 
 // ═══════════════════════════════════════
@@ -1879,38 +1922,16 @@ function updateBulkBar() {
 }
 
 // ── SINGLE DELETE ──
-async function deleteRecord(id, name) {
+function deleteRecord(id, name) {
   if(adminRole!=='admin'){ showToast('⚠️ No tiene permisos para eliminar'); return; }
-  showConfirm(
-    '¿Eliminar registro de ' + name.split(' ')[0] + '?',
-    'Esta acción eliminará el registro de PostgreSQL y permitirá que la persona vuelva a realizar la inducción.',
-    async function() {
-      const res=await apiDelete(id);
-  if(res.ok){
-    records=records.filter(r=>String(r.id)!==String(id));
-      localSave(); selectedIds.delete(String(id));
-      renderAdminUI(); showToast('✅ Registro eliminado');
-    } else { showToast('❌ Error al eliminar: '+res.error); }
-  });
+  showDeleteConfirm(id, name);
 }
 
 // ── BULK DELETE ──
-async function deleteSelected() {
+function deleteSelected() {
   if(adminRole!=='admin'){ showToast('⚠️ No tiene permisos'); return; }
   if(!selectedIds.size){ showToast('Seleccione al menos un registro'); return; }
-  showConfirm(
-    'Eliminar ' + selectedIds.size + ' registro(s)',
-    'Esta acción eliminará los registros seleccionados de PostgreSQL permanentemente.',
-    async function() {
-      let deleted=0;
-      for(const id of [...selectedIds]) {
-        const res=await apiDelete(id);
-        if(res.ok){ records=records.filter(r=>String(r.id)!==String(id)); deleted++; }
-      }
-      localSave(); selectedIds.clear();
-      renderAdminUI(); showToast(`✅ ${deleted} registro(s) eliminado(s)`);
-    }
-  );
+  showBulkDeleteConfirm([...selectedIds]);
 }
 
 // ── DOWNLOAD SELECTED CERTS ──
