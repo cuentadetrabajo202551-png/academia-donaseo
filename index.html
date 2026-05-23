@@ -1812,7 +1812,7 @@ async function doDeleteConfirmed() {
     let deleted = 0;
     for(const id of bulk) {
       try {
-        const res = await fetch(API+'/record/'+id, {method:'DELETE'});
+        const res = await fetch(API+'/record/'+id, {method:'DELETE', headers:{'Authorization':'Bearer '+(_authToken||'')}});
         const data = await res.json();
         if(data.ok) { records=records.filter(r=>String(r.id)!==String(id)); deleted++; }
       } catch(e) {}
