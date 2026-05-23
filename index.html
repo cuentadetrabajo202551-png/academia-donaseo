@@ -1021,12 +1021,9 @@ const COLOMBIA = {
 };
 
 // ═══════════════════════════════════════
-// USERS — admin full, viewer read-only
+// USERS — authenticated via backend
 // ═══════════════════════════════════════
-const ADMIN_USERS = {
-  'admin':  { pass:'DonAseo2025!', role:'admin'   },
-  'rrhh':   { pass:'DonAseo_RH!',  role:'viewer'  },
-};
+// No credentials stored in frontend
 
 // ═══════════════════════════════════════
 // STATE
@@ -1041,6 +1038,7 @@ let records = [];
 let adminLoggedIn = false;
 let adminRole = '';
 let selectedIds = new Set();
+let _authToken = null; // session token from backend
 
 // ═══════════════════════════════════════
 // STORAGE
@@ -1063,7 +1061,10 @@ async function apiUpdateCert(id) {
 }
 async function apiLoadRecords() {
   try {
-    const res = await fetch(API+'/records');
+    const res = await fetch(API+'/records', {
+      headers: { 'Authorization': 'Bearer ' + (_authToken||'') }
+    });
+    if(res.status===401) { showToast('⚠️ Sesión expirada, inicie sesión nuevamente'); doAdminLogout(); return false; }
     const data = await res.json();
     if(data.ok && Array.isArray(data.records)) { records=data.records; localSave(); return true; }
   } catch(e) { console.warn('API load failed, using cache'); }
@@ -1071,7 +1072,10 @@ async function apiLoadRecords() {
   return false;
 }
 async function apiDelete(id) {
-  const res = await fetch(API+'/record/'+id,{method:'DELETE'});
+  const res = await fetch(API+'/record/'+id, {
+    method:'DELETE',
+    headers: { 'Authorization': 'Bearer ' + (_authToken||'') }
+  });
   return await res.json();
 }
 async function checkCedula(cedula) {
@@ -1113,21 +1117,36 @@ function fillCities() {
 // ═══════════════════════════════════════
 // ADMIN LOGIN
 // ═══════════════════════════════════════
-function adminLogin() {
+async function adminLogin() {
   const u = document.getElementById('adm-user').value.trim();
   const p = document.getElementById('adm-pass').value.trim();
-  const found = ADMIN_USERS[u];
-  if(found && found.pass === p) {
-    adminLoggedIn = true;
-    adminRole = found.role;
-    showScreen('admin');
-    renderAdmin();
-  } else {
-    showToast('⚠️ Usuario o contraseña incorrectos');
+  if(!u||!p){ showToast('⚠️ Ingrese usuario y contraseña'); return; }
+  const btn = document.querySelector('#screen-adminlogin .btn-primary');
+  if(btn){ btn.textContent='⏳ Verificando...'; btn.disabled=true; }
+  try {
+    const res  = await fetch(API+'/login', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({user:u, pass:p})
+    });
+    const data = await res.json();
+    if(data.ok) {
+      _authToken    = data.token;
+      adminRole     = data.role;
+      adminLoggedIn = true;
+      showScreen('admin');
+      renderAdmin();
+    } else {
+      showToast('⚠️ ' + (data.error||'Usuario o contraseña incorrectos'));
+    }
+  } catch(e) {
+    showToast('❌ Error de conexión con el servidor');
+  } finally {
+    if(btn){ btn.textContent='Acceder →'; btn.disabled=false; }
   }
 }
 function doAdminLogout() {
-  adminLoggedIn=false; adminRole='';
+  adminLoggedIn=false; adminRole=''; _authToken=null;
   showScreen('login');
 }
 
@@ -1715,7 +1734,7 @@ async function saveEdit() {
   try {
     const res = await fetch(API+'/update', {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+(_authToken||'')},
       body: JSON.stringify({id, name:nombre, cedula, cargo, edificio})
     });
     const data = await res.json();
@@ -1746,8 +1765,8 @@ let _pendingDeleteName = null;
 let _pendingBulkIds    = null;
 
 function showDeleteConfirm(id, name) {
-  _pendingDeleteId   = id;
-  _pendingDeleteName = name;
+  _pendingDeleteId   = String(id);
+  _pendingDeleteName = String(name);
   _pendingBulkIds    = null;
   document.getElementById('confirm-title').textContent = 'Eliminar registro de ' + name.split(' ')[0];
   document.getElementById('confirm-msg').textContent   = 'Esta acción eliminará el registro de PostgreSQL y permitirá que la persona vuelva a realizar la inducción.';
@@ -1769,11 +1788,13 @@ function closeConfirm() {
 }
 
 async function doDeleteConfirmed() {
+  const id   = _pendingDeleteId;
+  const bulk = _pendingBulkIds;
   closeConfirm();
-  if(_pendingDeleteId) {
-    const id = _pendingDeleteId, name = _pendingDeleteName;
+  if(id) {
+    showToast('⏳ Eliminando...');
     try {
-      const res = await fetch(API+'/record/'+id, {method:'DELETE'});
+      const res  = await fetch(API+'/record/'+id, {method:'DELETE', headers:{'Authorization':'Bearer '+(_authToken||'')}});
       const data = await res.json();
       if(data.ok) {
         records = records.filter(r=>String(r.id)!==String(id));
@@ -1785,11 +1806,11 @@ async function doDeleteConfirmed() {
         showToast('❌ Error: ' + (data.error||'No se pudo eliminar'));
       }
     } catch(e) {
-      showToast('❌ Error de conexión al eliminar');
+      showToast('❌ Error de conexión: ' + e.message);
     }
-  } else if(_pendingBulkIds) {
+  } else if(bulk) {
     let deleted = 0;
-    for(const id of _pendingBulkIds) {
+    for(const id of bulk) {
       try {
         const res = await fetch(API+'/record/'+id, {method:'DELETE'});
         const data = await res.json();
@@ -1890,7 +1911,7 @@ function renderTable() {
       <td>
         ${isAdmin?`<div style="display:flex;gap:4px;align-items:center;">
           <button class="btn-del" style="color:var(--blue);padding:3px 7px;font-size:.78rem;" onclick="openEditModal('${r.id}')">✏️</button>
-          <button class="btn-del" style="padding:3px 7px;font-size:.78rem;" onclick="deleteRecord('${r.id}','${r.name}')">🗑️</button>
+          <button class="btn-del" style="padding:3px 7px;font-size:.78rem;" onclick="deleteRecord('${r.id}')">🗑️</button>
         </div>`:''}
       </td>
     </tr>`;
@@ -1922,8 +1943,10 @@ function updateBulkBar() {
 }
 
 // ── SINGLE DELETE ──
-function deleteRecord(id, name) {
+function deleteRecord(id) {
   if(adminRole!=='admin'){ showToast('⚠️ No tiene permisos para eliminar'); return; }
+  const rec = records.find(r=>String(r.id)===String(id));
+  const name = rec ? rec.name : 'este trabajador';
   showDeleteConfirm(id, name);
 }
 
