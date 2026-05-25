@@ -1787,39 +1787,64 @@ function closeConfirm() {
   _pendingDeleteId = null; _pendingDeleteName = null; _pendingBulkIds = null;
 }
 
+async function safeDelete(id) {
+  // Returns {ok, error} handling all response types safely
+  try {
+    const res = await fetch(API+'/record/'+id, {
+      method: 'DELETE',
+      headers: {'Authorization': 'Bearer '+(_authToken||'')}
+    });
+    if(res.status === 401) {
+      doAdminLogout();
+      return {ok:false, error:'Sesión expirada — inicie sesión nuevamente'};
+    }
+    if(res.status === 404) return {ok:false, error:'Registro no encontrado en base de datos'};
+    if(res.status === 204) return {ok:true}; // No content = success
+    const text = await res.text();
+    if(!text) return {ok: res.ok};
+    try {
+      const data = JSON.parse(text);
+      return data;
+    } catch(e) {
+      return {ok: res.ok};
+    }
+  } catch(e) {
+    return {ok:false, error:'Error de red: '+e.message};
+  }
+}
+
 async function doDeleteConfirmed() {
   const id   = _pendingDeleteId;
   const bulk = _pendingBulkIds;
   closeConfirm();
+
   if(id) {
     showToast('⏳ Eliminando...');
-    try {
-      const res  = await fetch(API+'/record/'+id, {method:'DELETE', headers:{'Authorization':'Bearer '+(_authToken||'')}});
-      const data = await res.json();
-      if(data.ok) {
-        records = records.filter(r=>String(r.id)!==String(id));
-        localSave();
-        selectedIds.delete(String(id));
-        renderAdminUI();
-        showToast('✅ Registro eliminado correctamente');
-      } else {
-        showToast('❌ Error: ' + (data.error||'No se pudo eliminar'));
-      }
-    } catch(e) {
-      showToast('❌ Error de conexión: ' + e.message);
+    const result = await safeDelete(id);
+    if(result.ok) {
+      records = records.filter(r=>String(r.id)!==String(id));
+      localSave();
+      selectedIds.delete(String(id));
+      renderAdminUI();
+      showToast('✅ Registro eliminado correctamente');
+    } else {
+      showToast('❌ ' + (result.error||'No se pudo eliminar'));
     }
+
   } else if(bulk) {
+    showToast('⏳ Eliminando '+bulk.length+' registros...');
     let deleted = 0;
-    for(const id of bulk) {
-      try {
-        const res = await fetch(API+'/record/'+id, {method:'DELETE', headers:{'Authorization':'Bearer '+(_authToken||'')}});
-        const data = await res.json();
-        if(data.ok) { records=records.filter(r=>String(r.id)!==String(id)); deleted++; }
-      } catch(e) {}
+    for(const bid of bulk) {
+      const result = await safeDelete(bid);
+      if(result.ok) {
+        records = records.filter(r=>String(r.id)!==String(bid));
+        deleted++;
+      }
     }
-    localSave(); selectedIds.clear();
+    localSave();
+    selectedIds.clear();
     renderAdminUI();
-    showToast('✅ ' + deleted + ' registro(s) eliminado(s)');
+    showToast('✅ '+deleted+' de '+bulk.length+' registro(s) eliminado(s)');
   }
 }
 
@@ -1889,6 +1914,10 @@ function getFilteredRecords() {
 }
 
 function renderTable() {
+  // Debug: log first record id to verify it matches DB
+  if(records.length > 0) {
+    console.log('First record id:', records[0].id, 'type:', typeof records[0].id);
+  }
   const filt=getFilteredRecords();
   const tb=document.getElementById('adm-tbody'), em=document.getElementById('adm-empty');
   if(!filt.length){ tb.innerHTML=''; em.style.display='block'; return; }
