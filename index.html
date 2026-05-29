@@ -483,6 +483,50 @@ body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--gray-800)
 }
 .btn-del:hover { background:rgba(220,38,38,.08); }
 
+/* ── ADMIN TABS ── */
+.admin-tabs{display:flex;gap:0;margin-bottom:22px;border-bottom:2px solid var(--gray-100)}
+.atab{padding:10px 22px;border:none;background:none;font-family:'Outfit',sans-serif;
+  font-size:.83rem;font-weight:600;color:var(--gray-400);cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-2px;transition:var(--t)}
+.atab:hover{color:var(--blue-deep)}
+.atab.atab-active{color:var(--blue);border-bottom-color:var(--blue)}
+
+/* ── CONFIG PANEL ── */
+.cfg-panel{background:#fff;border-radius:var(--rl);box-shadow:var(--sh);padding:28px}
+.cfg-grid{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-bottom:24px}
+@media(max-width:640px){.cfg-grid{grid-template-columns:1fr}}
+.cfg-col-head{font-family:'Cormorant Garamond',serif;color:var(--blue-deep);font-size:1.05rem;
+  font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.cfg-count{background:var(--gray-100);color:var(--gray-600);font-size:.68rem;
+  font-family:'Outfit',sans-serif;padding:2px 9px;border-radius:20px;font-weight:700}
+.cfg-list{max-height:320px;overflow-y:auto;border:1px solid var(--gray-200);border-radius:var(--r);background:var(--off)}
+.cfg-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;
+  border-bottom:1px solid var(--gray-100);font-size:.81rem;color:var(--gray-600);transition:var(--t)}
+.cfg-item:last-child{border-bottom:none}
+.cfg-item:hover{background:#eef3fb}
+.cfg-del{background:none;border:none;color:var(--gray-400);cursor:pointer;font-size:.88rem;
+  padding:2px 7px;border-radius:5px;transition:var(--t);flex-shrink:0;line-height:1}
+.cfg-del:hover{background:rgba(220,38,38,.1);color:var(--danger)}
+.cfg-add-row{display:flex;gap:8px;margin-top:12px}
+.cfg-input{flex:1;padding:9px 13px;border:1px solid var(--gray-200);border-radius:8px;
+  font-size:.83rem;font-family:'Outfit',sans-serif;outline:none;color:var(--blue-deep);transition:var(--t)}
+.cfg-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(18,85,163,.1)}
+.cfg-add-btn{padding:9px 16px;background:var(--blue);color:#fff;border:none;border-radius:8px;
+  font-size:.8rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;
+  transition:var(--t);white-space:nowrap}
+.cfg-add-btn:hover{background:var(--blue-deep)}
+.cfg-footer{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding-top:20px;border-top:1px solid var(--gray-100)}
+.cfg-save{padding:11px 26px;background:linear-gradient(135deg,var(--green),var(--blue));
+  color:#fff;border:none;border-radius:10px;font-size:.88rem;font-weight:600;cursor:pointer;
+  font-family:'Outfit',sans-serif;transition:var(--t);box-shadow:0 4px 14px rgba(26,168,84,.28)}
+.cfg-save:hover{transform:translateY(-1px);box-shadow:0 7px 22px rgba(26,168,84,.42)}
+.cfg-export{padding:11px 26px;background:#fff;color:var(--blue-deep);
+  border:1.5px solid var(--gray-200);border-radius:10px;font-size:.88rem;font-weight:600;
+  cursor:pointer;font-family:'Outfit',sans-serif;transition:var(--t)}
+.cfg-export:hover{border-color:var(--blue);color:var(--blue)}
+.cfg-hint{font-size:.74rem;color:var(--gray-400);line-height:1.6;margin-top:14px}
+
 /* ── TIPO BADGE ── */
 .tipo-badge {
   display:inline-flex;align-items:center;gap:4px;padding:3px 9px;
@@ -648,111 +692,11 @@ body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--gray-800)
     <div class="form-group"><label>Edificio / Entidad donde labora</label>
       <select id="ln-edificio">
         <option value="">Seleccione edificio o entidad</option>
-      <option value="ALMAGRARIO">ALMAGRARIO</option>
-      <option value="ASERCOR">ASERCOR</option>
-      <option value="AUTOROBLE">AUTOROBLE</option>
-      <option value="COMFENALCO ANTIOQUIA">COMFENALCO ANTIOQUIA</option>
-      <option value="CAMARA DE COMERCIO">CAMARA DE COMERCIO</option>
-      <option value="CONDOMINIO MALIBU">CONDOMINIO MALIBU</option>
-      <option value="CONJUNTO RESIDENCIAL ACUARELLA">CONJUNTO RESIDENCIAL ACUARELLA</option>
-      <option value="CONJUNTO RESIDENCIAL AMBARY">CONJUNTO RESIDENCIAL AMBARY</option>
-      <option value="CONJUNTO RESIDENCIAL ATENAS">CONJUNTO RESIDENCIAL ATENAS</option>
-      <option value="CONJUNTO RESIDENCIAL PASEO DE LA CASTELLANA">CONJUNTO RESIDENCIAL PASEO DE LA CASTELLANA</option>
-      <option value="CONJUNTO RESIDENCIAL PICACHO HILLS">CONJUNTO RESIDENCIAL PICACHO HILLS</option>
-      <option value="CONJUNTO RESIDENCIAL SEVILLA CAMPESTRE">CONJUNTO RESIDENCIAL SEVILLA CAMPESTRE</option>
-      <option value="CONJUNTO RESIDENCIAL TORRES DEL ESTE">CONJUNTO RESIDENCIAL TORRES DEL ESTE</option>
-      <option value="CORABASTO">CORABASTO</option>
-      <option value="CVS">CVS</option>
-      <option value="CORPROGRESO">CORPROGRESO</option>
-      <option value="CORVIVIENDA">CORVIVIENDA</option>
-      <option value="EDIFICIO BOREAL 53">EDIFICIO BOREAL 53</option>
-      <option value="EDIFICIO DAMASCO">EDIFICIO DAMASCO</option>
-      <option value="EDIFICIO EL RIO">EDIFICIO EL RIO</option>
-      <option value="EDIFICIO INDIGO">EDIFICIO INDIGO</option>
-      <option value="EDIFICIO KANTABRIA">EDIFICIO KANTABRIA</option>
-      <option value="EDIFICIO LE-BLUE">EDIFICIO LE-BLUE</option>
-      <option value="EDIFICIO LIMA">EDIFICIO LIMA</option>
-      <option value="EDIFICIO MARQUES DE SEVILLA">EDIFICIO MARQUES DE SEVILLA</option>
-      <option value="EDIFICIO MATISSE">EDIFICIO MATISSE</option>
-      <option value="EDIFICIO MONTICELLO">EDIFICIO MONTICELLO</option>
-      <option value="EDIFICIO PALERMO">EDIFICIO PALERMO</option>
-      <option value="EDIFICIO SAN GIORGIO">EDIFICIO SAN GIORGIO</option>
-      <option value="EDIFICIO SAN ROUSSE">EDIFICIO SAN ROUSSE</option>
-      <option value="EDIFICIO SANVENTO">EDIFICIO SANVENTO</option>
-      <option value="EDIFICIO SFERA 63">EDIFICIO SFERA 63</option>
-      <option value="EDIFICIO SOLARIS">EDIFICIO SOLARIS</option>
-      <option value="EDIFICIO VITRAL">EDIFICIO VITRAL</option>
-      <option value="EDIFICIO ZANDALO">EDIFICIO ZANDALO</option>
-      <option value="ESCUELA TALLER CARTAGENA DE INDIAS">ESCUELA TALLER CARTAGENA DE INDIAS</option>
-      <option value="ESE CLINICA MATERNIDAD RAFAEL CALVO CARTAGENA">ESE CLINICA MATERNIDAD RAFAEL CALVO CARTAGENA</option>
-      <option value="ESE HOSPITAL GENERAL DE MEDELLÍN LUZ CASTRO DE GUTIÉRREZ">ESE HOSPITAL GENERAL DE MEDELLÍN LUZ CASTRO DE GUTIÉRREZ</option>
-      <option value="FINCA">FINCA</option>
-      <option value="GECELCA 3 AIRE">GECELCA 3 AIRE</option>
-      <option value="GECELCA BARRANQUILLA">GECELCA BARRANQUILLA</option>
-      <option value="GECELCA BARRANQUILLA PORTERO">GECELCA BARRANQUILLA PORTERO</option>
-      <option value="GECELCA MINAS LAS PALMERAS">GECELCA MINAS LAS PALMERAS</option>
-      <option value="GECELCA MINAS LAS PALMERAS - AIRE">GECELCA MINAS LAS PALMERAS - AIRE</option>
-      <option value="GECELCA TERMOGUAJIRA">GECELCA TERMOGUAJIRA</option>
-      <option value="GOBERNACION DE BOLIVAR">GOBERNACION DE BOLIVAR</option>
-      <option value="LUNA CAPTIVA">LUNA CAPTIVA</option>
-      <option value="OFICINA ADMINISTRATIVA">OFICINA ADMINISTRATIVA</option>
-      <option value="SERVISELET">SERVISELET</option>
-      <option value="TORRES DE CASTILLA">TORRES DE CASTILLA</option>
-      <option value="UNIVERSIDAD LUIS AMIGO">UNIVERSIDAD LUIS AMIGO</option>
       </select>
     </div>
     <div class="form-group"><label>Cargo</label>
       <select id="ln-cargo">
         <option value="">Seleccione su cargo</option>
-                <option>Asistente Administrativo</option>
-        <option>Aux. Contable</option>
-        <option>Aux. de Servicios Generales</option>
-        <option>Auxiliar de Mantenimiento Menores</option>
-        <option>Auxiliar de Obra Civil</option>
-        <option>Conductor Bus</option>
-        <option>Contadora</option>
-        <option>Contratista</option>
-        <option>Coordinador SST</option>
-        <option>Coor. Administrativa y Financiera</option>
-        <option>Coor. Recursos Humanos</option>
-        <option>Coordinador</option>
-        <option>Coordinador Administrativo</option>
-        <option>Coordinador de Calidad</option>
-        <option>Coordinador del Contrato</option>
-        <option>Coordinador Operativo</option>
-        <option>Gerente</option>
-        <option>Herramentero</option>
-        <option>Ingeniero Ambiental</option>
-        <option>Ingeniero/a Forestal</option>
-        <option>Jardinero</option>
-        <option>Líder de SST</option>
-        <option>Mantenimiento de Zonas Verdes</option>
-        <option>Mayordomo</option>
-        <option>Mensajero</option>
-        <option>Oficial de Obra Civil</option>
-        <option>Operador Logístico - Rondero</option>
-        <option>Operador Múltiple</option>
-        <option>Personal Calificado</option>
-        <option>Personal Calificado (Albañil)</option>
-        <option>Personal Calificado (Pintor)</option>
-        <option>Personal Calificado (Pintura)</option>
-        <option>Personal Calificado (Soldador)</option>
-        <option>Personal Calificado Carpintero</option>
-        <option>Personal Calificado Electricista</option>
-        <option>Personal Calificado - Equipos Pesados</option>
-        <option>Personal Calificado Hotelero</option>
-        <option>Personal Calificado Plomero</option>
-        <option>Personal Calificado Soldador</option>
-        <option>Portero / Conserje</option>
-        <option>Relevo</option>
-        <option>Supervisor</option>
-        <option>Supervisor General</option>
-        <option>Supervisor Hacedor</option>
-        <option>Técnico Ambiental</option>
-        <option>Técnico de Operarios</option>
-        <option>Técnico en Mantenimiento</option>
-        <option>Técnico en Refrigeración</option>
-        <option>Todero</option>
       </select>
     </div>
     <button class="btn-primary" id="btn-ingresar" onclick="doLogin()">Verificar e Ingresar →</button>
@@ -818,6 +762,11 @@ body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--gray-800)
     <div class="admin-hdr">
       <div><h2>Registro de Inducciones</h2><p>Panel de control — Gestión del Talento Humano</p></div>
     </div>
+    <div class="admin-tabs">
+      <button class="atab atab-active" id="atab-reg" onclick="showAdminTab('reg')">📋 Registros</button>
+      <button class="atab" id="atab-cfg" onclick="showAdminTab('cfg')">⚙ Configuración</button>
+    </div>
+    <div id="tab-reg-content">
     <div class="stats-row" id="admin-stats"></div>
     <div class="table-card">
       <!-- Filters -->
@@ -890,6 +839,34 @@ body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--gray-800)
         </div>
       </div>
     </div>
+    </div><!-- /tab-reg-content -->
+    <div id="tab-cfg-content" style="display:none">
+      <div class="cfg-panel">
+        <div class="cfg-grid">
+          <div class="cfg-col">
+            <div class="cfg-col-head">🏢 Edificios / Entidades <span class="cfg-count" id="cfg-edif-count">0</span></div>
+            <div class="cfg-list" id="cfg-edif-list"></div>
+            <div class="cfg-add-row">
+              <input id="cfg-edif-input" class="cfg-input" placeholder="Nombre del edificio o entidad..." onkeydown="if(event.key==='Enter')cfgAddEdificio()">
+              <button class="cfg-add-btn" onclick="cfgAddEdificio()">+ Añadir</button>
+            </div>
+          </div>
+          <div class="cfg-col">
+            <div class="cfg-col-head">💼 Cargos <span class="cfg-count" id="cfg-cargo-count">0</span></div>
+            <div class="cfg-list" id="cfg-cargo-list"></div>
+            <div class="cfg-add-row">
+              <input id="cfg-cargo-input" class="cfg-input" placeholder="Nombre del cargo..." onkeydown="if(event.key==='Enter')cfgAddCargo()">
+              <button class="cfg-add-btn" onclick="cfgAddCargo()">+ Añadir</button>
+            </div>
+          </div>
+        </div>
+        <div class="cfg-footer">
+          <button class="cfg-save" onclick="cfgSave()">💾 Guardar Cambios</button>
+          <button class="cfg-export" onclick="cfgExport()">📥 Exportar HTML Actualizado</button>
+        </div>
+        <p class="cfg-hint">💡 <strong>Guardar Cambios</strong> aplica las listas de inmediato en esta sesión. Para que todos los empleados vean las nuevas opciones en sus dispositivos, pulsa <strong>Exportar HTML Actualizado</strong> y sube el archivo a GitHub.</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -925,57 +902,7 @@ body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--gray-800)
       </div>
       <div class="modal-field"><label>Edificio / Entidad</label>
         <select id="edit-edificio">
-          <option value="">Seleccione...</option>          <option value="ALMAGRARIO">ALMAGRARIO</option>
-          <option value="ASERCOR">ASERCOR</option>
-          <option value="AUTOROBLE">AUTOROBLE</option>
-          <option value="COMFENALCO ANTIOQUIA">COMFENALCO ANTIOQUIA</option>
-          <option value="CAMARA DE COMERCIO">CAMARA DE COMERCIO</option>
-          <option value="CONDOMINIO MALIBU">CONDOMINIO MALIBU</option>
-          <option value="CONJUNTO RESIDENCIAL ACUARELLA">CONJUNTO RESIDENCIAL ACUARELLA</option>
-          <option value="CONJUNTO RESIDENCIAL AMBARY">CONJUNTO RESIDENCIAL AMBARY</option>
-          <option value="CONJUNTO RESIDENCIAL ATENAS">CONJUNTO RESIDENCIAL ATENAS</option>
-          <option value="CONJUNTO RESIDENCIAL PASEO DE LA CASTELLANA">CONJUNTO RESIDENCIAL PASEO DE LA CASTELLANA</option>
-          <option value="CONJUNTO RESIDENCIAL PICACHO HILLS">CONJUNTO RESIDENCIAL PICACHO HILLS</option>
-          <option value="CONJUNTO RESIDENCIAL SEVILLA CAMPESTRE">CONJUNTO RESIDENCIAL SEVILLA CAMPESTRE</option>
-          <option value="CONJUNTO RESIDENCIAL TORRES DEL ESTE">CONJUNTO RESIDENCIAL TORRES DEL ESTE</option>
-          <option value="CORABASTO">CORABASTO</option>
-          <option value="CVS">CVS</option>
-          <option value="CORPROGRESO">CORPROGRESO</option>
-          <option value="CORVIVIENDA">CORVIVIENDA</option>
-          <option value="EDIFICIO BOREAL 53">EDIFICIO BOREAL 53</option>
-          <option value="EDIFICIO DAMASCO">EDIFICIO DAMASCO</option>
-          <option value="EDIFICIO EL RIO">EDIFICIO EL RIO</option>
-          <option value="EDIFICIO INDIGO">EDIFICIO INDIGO</option>
-          <option value="EDIFICIO KANTABRIA">EDIFICIO KANTABRIA</option>
-          <option value="EDIFICIO LE-BLUE">EDIFICIO LE-BLUE</option>
-          <option value="EDIFICIO LIMA">EDIFICIO LIMA</option>
-          <option value="EDIFICIO MARQUES DE SEVILLA">EDIFICIO MARQUES DE SEVILLA</option>
-          <option value="EDIFICIO MATISSE">EDIFICIO MATISSE</option>
-          <option value="EDIFICIO MONTICELLO">EDIFICIO MONTICELLO</option>
-          <option value="EDIFICIO PALERMO">EDIFICIO PALERMO</option>
-          <option value="EDIFICIO SAN GIORGIO">EDIFICIO SAN GIORGIO</option>
-          <option value="EDIFICIO SAN ROUSSE">EDIFICIO SAN ROUSSE</option>
-          <option value="EDIFICIO SANVENTO">EDIFICIO SANVENTO</option>
-          <option value="EDIFICIO SFERA 63">EDIFICIO SFERA 63</option>
-          <option value="EDIFICIO SOLARIS">EDIFICIO SOLARIS</option>
-          <option value="EDIFICIO VITRAL">EDIFICIO VITRAL</option>
-          <option value="EDIFICIO ZANDALO">EDIFICIO ZANDALO</option>
-          <option value="ESCUELA TALLER CARTAGENA DE INDIAS">ESCUELA TALLER CARTAGENA DE INDIAS</option>
-          <option value="ESE CLINICA MATERNIDAD RAFAEL CALVO CARTAGENA">ESE CLINICA MATERNIDAD RAFAEL CALVO CARTAGENA</option>
-          <option value="ESE HOSPITAL GENERAL DE MEDELLÍN LUZ CASTRO DE GUTIÉRREZ">ESE HOSPITAL GENERAL DE MEDELLÍN LUZ CASTRO DE GUTIÉRREZ</option>
-          <option value="FINCA">FINCA</option>
-          <option value="GECELCA 3 AIRE">GECELCA 3 AIRE</option>
-          <option value="GECELCA BARRANQUILLA">GECELCA BARRANQUILLA</option>
-          <option value="GECELCA BARRANQUILLA PORTERO">GECELCA BARRANQUILLA PORTERO</option>
-          <option value="GECELCA MINAS LAS PALMERAS">GECELCA MINAS LAS PALMERAS</option>
-          <option value="GECELCA MINAS LAS PALMERAS - AIRE">GECELCA MINAS LAS PALMERAS - AIRE</option>
-          <option value="GECELCA TERMOGUAJIRA">GECELCA TERMOGUAJIRA</option>
-          <option value="GOBERNACION DE BOLIVAR">GOBERNACION DE BOLIVAR</option>
-          <option value="LUNA CAPTIVA">LUNA CAPTIVA</option>
-          <option value="OFICINA ADMINISTRATIVA">OFICINA ADMINISTRATIVA</option>
-          <option value="SERVISELET">SERVISELET</option>
-          <option value="TORRES DE CASTILLA">TORRES DE CASTILLA</option>
-          <option value="UNIVERSIDAD LUIS AMIGO">UNIVERSIDAD LUIS AMIGO</option>
+          <option value="">Seleccione...</option>
         </select>
       </div>
       <div class="modal-actions">
@@ -988,6 +915,12 @@ body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--gray-800)
 
 <script>
 const API = 'https://donaseo-backend-production.up.railway.app';
+
+// ═══════════════════════════════════════
+// LISTAS CONFIGURABLES (edificios y cargos)
+// ═══════════════════════════════════════
+const DEFAULT_EDIFICIOS = ["ALMAGRARIO","ASERCOR","AUTOROBLE","CAMARA DE COMERCIO","COMFENALCO ANTIOQUIA","CONDOMINIO MALIBU","CONJUNTO RESIDENCIAL ACUARELLA","CONJUNTO RESIDENCIAL AMBARY","CONJUNTO RESIDENCIAL ATENAS","CONJUNTO RESIDENCIAL PASEO DE LA CASTELLANA","CONJUNTO RESIDENCIAL PICACHO HILLS","CONJUNTO RESIDENCIAL SEVILLA CAMPESTRE","CONJUNTO RESIDENCIAL TORRES DEL ESTE","CORABASTO","CORPROGRESO","CORVIVIENDA","CVS","EDIFICIO BOREAL 53","EDIFICIO DAMASCO","EDIFICIO EL RIO","EDIFICIO INDIGO","EDIFICIO KANTABRIA","EDIFICIO LE-BLUE","EDIFICIO LIMA","EDIFICIO MARQUES DE SEVILLA","EDIFICIO MATISSE","EDIFICIO MONTICELLO","EDIFICIO PALERMO","EDIFICIO SAN GIORGIO","EDIFICIO SAN ROUSSE","EDIFICIO SANVENTO","EDIFICIO SFERA 63","EDIFICIO SOLARIS","EDIFICIO VITRAL","EDIFICIO ZANDALO","ESE CLINICA MATERNIDAD RAFAEL CALVO CARTAGENA","ESE HOSPITAL GENERAL DE MEDELLÍN LUZ CASTRO DE GUTIÉRREZ","ESCUELA TALLER CARTAGENA DE INDIAS","FINCA","GECELCA 3 AIRE","GECELCA BARRANQUILLA","GECELCA BARRANQUILLA PORTERO","GECELCA MINAS LAS PALMERAS","GECELCA MINAS LAS PALMERAS - AIRE","GECELCA TERMOGUAJIRA","GOBERNACION DE BOLIVAR","LUNA CAPTIVA","OFICINA ADMINISTRATIVA","SERVISELET","TORRES DE CASTILLA","UNIVERSIDAD LUIS AMIGO"];
+const DEFAULT_CARGOS = ["Asistente Administrativo","Aux. Contable","Aux. de Servicios Generales","Auxiliar de Mantenimiento Menores","Auxiliar de Obra Civil","Conductor Bus","Contadora","Contratista","Coordinador SST","Coor. Administrativa y Financiera","Coor. Recursos Humanos","Coordinador","Coordinador Administrativo","Coordinador de Calidad","Coordinador del Contrato","Coordinador Operativo","Gerente","Herramentero","Ingeniero Ambiental","Ingeniero/a Forestal","Jardinero","Líder de SST","Mantenimiento de Zonas Verdes","Mayordomo","Mensajero","Oficial de Obra Civil","Operador Logístico - Rondero","Operador Múltiple","Personal Calificado","Personal Calificado (Albañil)","Personal Calificado (Pintor)","Personal Calificado (Pintura)","Personal Calificado (Soldador)","Personal Calificado Carpintero","Personal Calificado Electricista","Personal Calificado - Equipos Pesados","Personal Calificado Hotelero","Personal Calificado Plomero","Personal Calificado Soldador","Portero / Conserje","Relevo","Supervisor","Supervisor General","Supervisor Hacedor","Técnico Ambiental","Técnico de Operarios","Técnico en Mantenimiento","Técnico en Refrigeración","Todero"];
 const COLOMBIA = {
   "Amazonas":["Leticia","Puerto Nariño"],
   "Antioquia":["Medellín","Bello","Itagüí","Envigado","Apartadó","Turbo","Rionegro","Caucasia","Sabaneta","La Estrella"],
@@ -2361,6 +2294,118 @@ function showToast(msg) {
   setTimeout(()=>t.classList.remove('show'),3200);
 }
 
+
+// ═══════════════════════════════════════
+// CONFIG — Funciones de listas dinámicas
+// ═══════════════════════════════════════
+function getCfgEdificios() {
+  try { const s=localStorage.getItem('da_edificios'); return s?JSON.parse(s):[...DEFAULT_EDIFICIOS]; }
+  catch(e){ return [...DEFAULT_EDIFICIOS]; }
+}
+function getCfgCargos() {
+  try { const s=localStorage.getItem('da_cargos'); return s?JSON.parse(s):[...DEFAULT_CARGOS]; }
+  catch(e){ return [...DEFAULT_CARGOS]; }
+}
+function rebuildDropdowns() {
+  const edifs=getCfgEdificios(), cargos=getCfgCargos();
+  const lnE=document.getElementById('ln-edificio');
+  if(lnE){ const cur=lnE.value; lnE.innerHTML='<option value="">Seleccione edificio o entidad</option>'+edifs.map(e=>`<option value="${e}">${e}</option>`).join(''); if(edifs.includes(cur))lnE.value=cur; }
+  const edE=document.getElementById('edit-edificio');
+  if(edE){ const cur=edE.value; edE.innerHTML='<option value="">Seleccione...</option>'+edifs.map(e=>`<option value="${e}">${e}</option>`).join(''); if(edifs.includes(cur))edE.value=cur; }
+  const lnC=document.getElementById('ln-cargo');
+  if(lnC){ const cur=lnC.value; lnC.innerHTML='<option value="">Seleccione su cargo</option>'+cargos.map(c=>`<option>${c}</option>`).join(''); if(cargos.includes(cur))lnC.value=cur; }
+}
+
+// ── Tabs del panel admin ──
+function showAdminTab(tab) {
+  document.getElementById('tab-reg-content').style.display=tab==='reg'?'':'none';
+  document.getElementById('tab-cfg-content').style.display=tab==='cfg'?'':'none';
+  document.getElementById('atab-reg').classList.toggle('atab-active',tab==='reg');
+  document.getElementById('atab-cfg').classList.toggle('atab-active',tab==='cfg');
+  if(tab==='cfg') renderCfgPanel();
+}
+
+// ── Estado temporal del panel de configuración ──
+let _cfgEdifs=[], _cfgCargos=[];
+
+function renderCfgPanel() {
+  _cfgEdifs=[...getCfgEdificios()];
+  _cfgCargos=[...getCfgCargos()];
+  _renderCfgEdifList();
+  _renderCfgCargoList();
+}
+function _renderCfgEdifList() {
+  const el=document.getElementById('cfg-edif-list');
+  const cnt=document.getElementById('cfg-edif-count');
+  if(!el) return;
+  cnt.textContent=_cfgEdifs.length;
+  el.innerHTML=_cfgEdifs.length
+    ? _cfgEdifs.map((e,i)=>`<div class="cfg-item"><span>${e}</span><button class="cfg-del" title="Eliminar" onclick="cfgDelEdif(${i})">✕</button></div>`).join('')
+    : '<div style="padding:14px;color:var(--gray-400);font-size:.82rem;text-align:center;">Lista vacía</div>';
+}
+function _renderCfgCargoList() {
+  const el=document.getElementById('cfg-cargo-list');
+  const cnt=document.getElementById('cfg-cargo-count');
+  if(!el) return;
+  cnt.textContent=_cfgCargos.length;
+  el.innerHTML=_cfgCargos.length
+    ? _cfgCargos.map((c,i)=>`<div class="cfg-item"><span>${c}</span><button class="cfg-del" title="Eliminar" onclick="cfgDelCargo(${i})">✕</button></div>`).join('')
+    : '<div style="padding:14px;color:var(--gray-400);font-size:.82rem;text-align:center;">Lista vacía</div>';
+}
+function cfgAddEdificio() {
+  const inp=document.getElementById('cfg-edif-input');
+  const val=inp.value.trim().toUpperCase();
+  if(!val){ showToast('⚠️ Escriba el nombre del edificio o entidad'); return; }
+  if(_cfgEdifs.includes(val)){ showToast('⚠️ Ya existe en la lista'); return; }
+  _cfgEdifs.push(val);
+  _cfgEdifs.sort((a,b)=>a.localeCompare(b,'es'));
+  inp.value='';
+  _renderCfgEdifList();
+  showToast('✅ Añadido — pulsa Guardar para confirmar');
+}
+function cfgAddCargo() {
+  const inp=document.getElementById('cfg-cargo-input');
+  const val=inp.value.trim();
+  if(!val){ showToast('⚠️ Escriba el nombre del cargo'); return; }
+  if(_cfgCargos.map(c=>c.toLowerCase()).includes(val.toLowerCase())){ showToast('⚠️ Ya existe en la lista'); return; }
+  _cfgCargos.push(val);
+  _cfgCargos.sort((a,b)=>a.localeCompare(b,'es'));
+  inp.value='';
+  _renderCfgCargoList();
+  showToast('✅ Añadido — pulsa Guardar para confirmar');
+}
+function cfgDelEdif(idx) {
+  _cfgEdifs.splice(idx,1);
+  _renderCfgEdifList();
+  showToast('🗑 Eliminado — pulsa Guardar para confirmar');
+}
+function cfgDelCargo(idx) {
+  _cfgCargos.splice(idx,1);
+  _renderCfgCargoList();
+  showToast('🗑 Eliminado — pulsa Guardar para confirmar');
+}
+function cfgSave() {
+  localStorage.setItem('da_edificios',JSON.stringify(_cfgEdifs));
+  localStorage.setItem('da_cargos',JSON.stringify(_cfgCargos));
+  rebuildDropdowns();
+  showToast('✅ Listas guardadas y aplicadas correctamente');
+}
+function cfgExport() {
+  const edifs=getCfgEdificios(), cargos=getCfgCargos();
+  let html='<!DOCTYPE html>\n'+document.documentElement.outerHTML;
+  html=html.replace(/const DEFAULT_EDIFICIOS\s*=\s*\[[\s\S]*?\];/,'const DEFAULT_EDIFICIOS = '+JSON.stringify(edifs)+';');
+  html=html.replace(/const DEFAULT_CARGOS\s*=\s*\[[\s\S]*?\];/,'const DEFAULT_CARGOS = '+JSON.stringify(cargos)+';');
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='academia-don-aseo-v3.html';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showToast('✅ HTML descargado — súbelo a GitHub para actualizar para todos');
+}
+
+// ── Inicializar dropdowns al cargar ──
+rebuildDropdowns();
 </script>
 </body>
 </html>
