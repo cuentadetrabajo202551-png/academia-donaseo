@@ -1018,7 +1018,7 @@ async function checkCedula(cedula) {
   try {
     const res = await fetch(API+'/check/'+cedula);
     return await res.json();
-  } catch(e) { return {ok:false}; }
+  } catch(e) { return {ok:false, error:true}; }
 }
 
 // ═══════════════════════════════════════
@@ -1111,8 +1111,12 @@ async function doLogin() {
 
   btn.textContent = 'Verificar e Ingresar →'; btn.disabled = false;
 
+  if(check.error) {
+    showToast('⚠️ No se pudo verificar la cédula. Revise su conexión e intente de nuevo.');
+    return;
+  }
+
   if(check.ok && check.exists) {
-    // Already did induction — show blocked screen
     showBlockedScreen(check.record, name);
     return;
   }
