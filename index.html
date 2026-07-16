@@ -880,7 +880,7 @@ body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--gray-800)
     <p id="confirm-msg">Esta acción eliminará el registro de PostgreSQL y permitirá que la persona vuelva a realizar la inducción.</p>
     <div class="confirm-btns">
       <button class="btn-confirm-no" onclick="closeConfirm()">Cancelar</button>
-      <button class="btn-confirm-yes" onclick="doDeleteConfirmed()">Sí, eliminar</button>
+      <button class="btn-confirm-yes" id="btn-confirm-action" onclick="doConfirmAction()">Sí, eliminar</button>
     </div>
   </div>
 </div>
@@ -1117,17 +1117,28 @@ async function doLogin() {
   }
 
   if(check.ok && check.exists) {
-    showBlockedScreen(check.record, name);
-    return;
+    if(check.record && check.record.reinduccion_habilitada) {
+      // Reinducción habilitada por admin — permitir ingreso
+      user = {
+        name, cedula, fecexp, celular, dep: dept+' - '+city,
+        departamento: dept, ciudad: city, edificio, cargo,
+        tipo: 'Reinduccion',
+        fecha: new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'}),
+        _oldRecordId: check.record.id
+      };
+    } else {
+      showBlockedScreen(check.record, name);
+      return;
+    }
+  } else {
+    // New user — proceed to induction
+    user = {
+      name, cedula, fecexp, celular, dep: dept+' - '+city,
+      departamento: dept, ciudad: city, edificio, cargo,
+      tipo: 'Induccion',
+      fecha: new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'})
+    };
   }
-
-  // New user — proceed to induction
-  user = {
-    name, cedula, fecexp, celular, dep: dept+' - '+city,
-    departamento: dept, ciudad: city, edificio, cargo,
-    tipo: 'Induccion',
-    fecha: new Date().toLocaleDateString('es-CO',{day:'2-digit',month:'long',year:'numeric'})
-  };
   document.getElementById('nav-avatar').textContent = name.charAt(0).toUpperCase();
   document.getElementById('nav-name').textContent   = name.split(' ')[0];
   document.getElementById('t-avatar').textContent   = name.charAt(0).toUpperCase();
@@ -1411,7 +1422,8 @@ function buildPDF(erikaSig, fernandoSig) {
   doc.setTextColor(12,35,64);
   doc.setFont('helvetica','bold');
   doc.setFontSize(13.5);
-  doc.text('CERTIFICADO DE INDUCCIÓN LABORAL', W/2, 65, {align:'center'});
+  const _certTipo = (user.tipo==='Reinduccion') ? 'REINDUCCIÓN' : 'INDUCCIÓN';
+  doc.text('CERTIFICADO DE '+_certTipo+' LABORAL', W/2, 65, {align:'center'});
 
   // ── INTRO ───────────────────────────────────
   doc.setTextColor(190,210,240);
@@ -1464,7 +1476,7 @@ function buildPDF(erikaSig, fernandoSig) {
   doc.setTextColor(180,210,240);
   doc.setFont('helvetica','normal');
   doc.setFontSize(9);
-  doc.text('completó satisfactoriamente el Proceso de Inducción Corporativa, habiendo aprobado los', W/2, 124, {align:'center'});
+  doc.text('completó satisfactoriamente el Proceso de '+_certTipo.charAt(0)+_certTipo.slice(1).toLowerCase()+' Corporativa, habiendo aprobado los', W/2, 124, {align:'center'});
   doc.text('12 módulos del programa y superado la evaluación final con nota aprobatoria.', W/2, 130, {align:'center'});
 
   // Reglamento note
@@ -1704,12 +1716,20 @@ let _pendingDeleteId   = null;
 let _pendingDeleteName = null;
 let _pendingBulkIds    = null;
 
+function doConfirmAction() {
+  if(_pendingReinduccionId) { doReinduccionConfirmed(); return; }
+  doDeleteConfirmed();
+}
+
 function showDeleteConfirm(id, name) {
   _pendingDeleteId   = String(id);
   _pendingDeleteName = String(name);
+  _pendingReinduccionId = null;
   _pendingBulkIds    = null;
   document.getElementById('confirm-title').textContent = 'Eliminar registro de ' + name.split(' ')[0];
   document.getElementById('confirm-msg').textContent   = 'Esta acción eliminará el registro de PostgreSQL y permitirá que la persona vuelva a realizar la inducción.';
+  document.getElementById('btn-confirm-action').textContent = 'Sí, eliminar';
+  document.getElementById('btn-confirm-action').style.background = '';
   document.getElementById('confirm-modal').classList.add('show');
 }
 
@@ -1717,14 +1737,17 @@ function showBulkDeleteConfirm(ids) {
   _pendingDeleteId   = null;
   _pendingDeleteName = null;
   _pendingBulkIds    = ids;
+  _pendingReinduccionId = null;
   document.getElementById('confirm-title').textContent = 'Eliminar ' + ids.length + ' registro(s)';
   document.getElementById('confirm-msg').textContent   = 'Esta acción eliminará los registros seleccionados de PostgreSQL permanentemente.';
+  document.getElementById('btn-confirm-action').textContent = 'Sí, eliminar';
+  document.getElementById('btn-confirm-action').style.background = '';
   document.getElementById('confirm-modal').classList.add('show');
 }
 
 function closeConfirm() {
   document.getElementById('confirm-modal').classList.remove('show');
-  _pendingDeleteId = null; _pendingDeleteName = null; _pendingBulkIds = null;
+  _pendingDeleteId = null; _pendingDeleteName = null; _pendingBulkIds = null; _pendingReinduccionId = null;
 }
 
 async function safeDelete(id) {
@@ -1873,13 +1896,14 @@ function renderTable() {
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.cargo||''}">${r.cargo||'—'}</td>
       <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.edificio||r.dep||''}">${r.edificio||r.dep||'—'}</td>
       <td>${r.fecha||'—'}</td>
-      <td><span class="tipo-badge ${tipoCls}">${tipoLabel}</span></td>
+      <td><span class="tipo-badge ${tipoCls}">${tipoLabel}</span>${r.reinduccion_habilitada?'<span style="display:inline-block;margin-left:4px;background:rgba(200,169,42,.15);color:#92700c;font-size:.62rem;padding:1px 6px;border-radius:10px;font-weight:700;">🔄 Habilitada</span>':''}</td>
       <td><strong style="color:${r.passed?'#14532d':'#7f1d1d'}">${r.nota}%</strong></td>
       <td>${r.passed?`<span class="status-badge sb-ok">✅ Aprobado</span>`:`<span class="status-badge sb-fail">❌ Reprobado</span>`}</td>
       <td>${r.passed?`<a class="dl-link" onclick="regenCert('${r.id}')" style="font-size:.76rem;">📄 Cert.</a>`:`<span style="color:var(--gray-400);font-size:.78rem;">—</span>`}</td>
       <td>
         ${isAdmin?`<div style="display:flex;gap:4px;align-items:center;">
           <button class="btn-del" style="color:var(--blue);padding:3px 7px;font-size:.78rem;" onclick="openEditModal('${r.id}')">✏️</button>
+          ${r.passed?`<button class="btn-del" style="color:var(--gold);padding:3px 7px;font-size:.78rem;" title="Habilitar reinducción" onclick="enableReinduccion('${r.id}')">🔄</button>`:''}
           <button class="btn-del" style="padding:3px 7px;font-size:.78rem;" onclick="deleteRecord('${r.id}')">🗑️</button>
         </div>`:''}
       </td>
@@ -1909,6 +1933,49 @@ function updateBulkBar() {
   // Hide delete in bulk bar for viewer
   const delBtn=document.getElementById('bulk-del-btn');
   if(delBtn) delBtn.style.display=adminRole==='admin'?'':'none';
+}
+
+// ── HABILITAR REINDUCCIÓN ──
+function enableReinduccion(id) {
+  if(adminRole!=='admin'){ showToast('⚠️ No tiene permisos'); return; }
+  const rec = records.find(r=>String(r.id)===String(id));
+  if(!rec){ showToast('⚠️ Registro no encontrado'); return; }
+  document.getElementById('confirm-title').textContent = '🔄 Habilitar Reinducción';
+  document.getElementById('confirm-msg').textContent   = '¿Habilitar reinducción para ' + rec.name + '? El registro actual de inducción se conservará y el trabajador podrá realizar el proceso nuevamente como Reinducción.';
+  document.getElementById('btn-confirm-action').textContent = 'Sí, habilitar';
+  document.getElementById('btn-confirm-action').style.background = 'linear-gradient(135deg,var(--gold),var(--gold-light))';
+  document.getElementById('confirm-modal').classList.add('show');
+  _pendingDeleteId = null;
+  _pendingBulkIds  = null;
+  _pendingReinduccionId = String(id);
+}
+let _pendingReinduccionId = null;
+
+async function doReinduccionConfirmed() {
+  const id = _pendingReinduccionId;
+  _pendingReinduccionId = null;
+  closeConfirm();
+  if(!id) return;
+  showToast('⏳ Habilitando reinducción...');
+  try {
+    const res = await fetch(API+'/update', {
+      method:'POST',
+      headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+(_authToken||'')},
+      body: JSON.stringify({id, reinduccion_habilitada: true})
+    });
+    const data = await res.json();
+    if(data.ok) {
+      const rec = records.find(r=>String(r.id)===String(id));
+      if(rec) rec.reinduccion_habilitada = true;
+      localSave();
+      renderAdminUI();
+      showToast('✅ Reinducción habilitada para este trabajador');
+    } else {
+      showToast('❌ Error: '+(data.error||'No se pudo actualizar'));
+    }
+  } catch(e) {
+    showToast('❌ Error de conexión');
+  }
 }
 
 // ── SINGLE DELETE ──
