@@ -1883,14 +1883,15 @@ function renderTable() {
   }
   const filt=getFilteredRecords();
   const tb=document.getElementById('adm-tbody'), em=document.getElementById('adm-empty');
-  if(!filt.length){ tb.innerHTML=''; em.style.display='block'; return; }
+  if(!filt.length){ tb.innerHTML=''; em.style.display='block'; updateBulkBar(); return; }
   em.style.display='none';
   const isAdmin=adminRole==='admin';
   tb.innerHTML=filt.map(r=>{
     const tipoCls=r.tipo==='Induccion'?'tb-ind':'tb-rein';
     const tipoLabel=r.tipo==='Induccion'?'Inducción':'Reinducción';
+    const isChecked=selectedIds.has(String(r.id));
     return `<tr id="row-${r.id}">
-      <td><input type="checkbox" class="row-check" value="${r.id}" onchange="toggleRow('${r.id}',this.checked)"></td>
+      <td><input type="checkbox" class="row-check" value="${r.id}" ${isChecked?'checked':''} onchange="toggleRow('${r.id}',this.checked)"></td>
       <td class="dn" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.name}">${r.name}</td>
       <td>${r.cedula}</td>
       <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${r.cargo||''}">${r.cargo||'—'}</td>
@@ -1909,6 +1910,7 @@ function renderTable() {
       </td>
     </tr>`;
   }).join('');
+  updateBulkBar();
 }
 
 function clearFilters() {
