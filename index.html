@@ -897,6 +897,9 @@ body{font-family:'Outfit',sans-serif;background:var(--off);color:var(--gray-800)
       <div class="modal-field"><label>Cédula</label>
         <input type="text" id="edit-cedula" placeholder="Número de cédula">
       </div>
+      <div class="modal-field"><label>Fecha de expedición</label>
+        <input type="date" id="edit-fecexp">
+      </div>
       <div class="modal-field"><label>Cargo</label>
         <input type="text" id="edit-cargo" placeholder="Cargo">
       </div>
@@ -1663,6 +1666,7 @@ function openEditModal(id) {
   document.getElementById('edit-id').value    = id;
   document.getElementById('edit-nombre').value = rec.name||'';
   document.getElementById('edit-cedula').value = rec.cedula||'';
+  document.getElementById('edit-fecexp').value = rec.fec_expedicion||'';
   document.getElementById('edit-cargo').value  = rec.cargo||'';
   document.getElementById('edit-edificio').value = rec.edificio||rec.dep||'';
   document.getElementById('edit-modal').style.display = 'block';
@@ -1676,6 +1680,7 @@ async function saveEdit() {
   const id      = document.getElementById('edit-id').value;
   const nombre  = document.getElementById('edit-nombre').value.trim();
   const cedula  = document.getElementById('edit-cedula').value.trim();
+  const fecexp  = document.getElementById('edit-fecexp').value.trim();
   const cargo   = document.getElementById('edit-cargo').value.trim();
   const edificio= document.getElementById('edit-edificio').value;
 
@@ -1687,14 +1692,14 @@ async function saveEdit() {
     const res = await fetch(API+'/update', {
       method:'POST',
       headers:{'Content-Type':'application/json', 'Authorization':'Bearer '+(_authToken||'')},
-      body: JSON.stringify({id, name:nombre, cedula, cargo, edificio})
+      body: JSON.stringify({id, name:nombre, cedula, cargo, edificio, fec_expedicion:fecexp})
     });
     const data = await res.json();
     if(data.ok) {
       // Update local records
       const rec = records.find(r=>String(r.id)===String(id));
       if(rec) {
-        rec.name=nombre; rec.cedula=cedula;
+        rec.name=nombre; rec.cedula=cedula; rec.fec_expedicion=fecexp;
         rec.cargo=cargo; rec.edificio=edificio; rec.dep=edificio;
       }
       localSave();
